@@ -8,11 +8,6 @@ class Fyber4Flutter {
   static const EventChannel _stream =
       const EventChannel('fyber_4_flutter/eventStream');
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-
   static Future<bool> startFyber({
     String appId,
     String securityToken,
@@ -60,6 +55,23 @@ class Fyber4Flutter {
       final String code = map["code"];
       return new EngagementEvent(
           _fromString(result), _fromCode(int.parse(code)));
+    });
+  }
+
+  static Future<String> showOfferwall({bool closeOnRedirect = false}) async {
+    return await _channel.invokeMethod("showAdvertisement", {
+      "type": _toString(AdTypes.offerwall),
+      "closeOnRedirect": "$closeOnRedirect",
+    });
+  }
+
+  static Future<String> showInterstitial() => showAd(AdTypes.interstitial);
+
+  static Future<String> showRewardedVideo(
+      {bool notifyOnCompletion = true}) async {
+    return await _channel.invokeMethod("showAdvertisement", {
+      "type": _toString(AdTypes.rewarded),
+      "notifyOnCompletion": "$notifyOnCompletion",
     });
   }
 }

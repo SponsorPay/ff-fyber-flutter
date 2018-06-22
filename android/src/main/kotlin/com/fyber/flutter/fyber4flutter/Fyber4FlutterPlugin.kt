@@ -86,19 +86,26 @@ class Fyber4FlutterPlugin(registrar: Registrar, val channel: MethodChannel) : Me
                                     =flutterActivity, requestCode = OFFERWALL_REQUEST_CODE)
 
 
-                            OfferWallRequester.create(requestCallback).request(context)
+                            OfferWallRequester.create(requestCallback)
+                                    .closeOnRedirect("true" == arguments["closeOnRedirect"])
+                                    .request(context)
                         }
                         "interstitial" -> {
                             val requestCallback: RequestCallback =
                                     CustomRequestCallback(result, context, activity
                                     =flutterActivity, requestCode = INTERSTITIAL_REQUEST_CODE)
-                            InterstitialRequester.create(requestCallback).request(context)
+                            InterstitialRequester.create(requestCallback)
+                                    .request(context)
                         }
                         "rewarded" -> {
                             val requestCallback: RequestCallback =
                                     CustomRequestCallback(result, context, activity
                                     =flutterActivity, requestCode = REWARDED_REQUEST_CODE)
-                            RewardedVideoRequester.create(requestCallback).request(context)
+                            RewardedVideoRequester.create(requestCallback)
+                                    .notifyUserOnCompletion("true" ==
+                                            (arguments["notifyOnCompletion"]?:
+                                    "true"))
+                                    .request(context)
                         }
                         else -> {
                             Log.e(TAG, "Unrecognized ad type: $it")

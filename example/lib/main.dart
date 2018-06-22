@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fyber_4_flutter/fyber_4_flutter.dart';
@@ -112,7 +114,7 @@ class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
         appId: _appId.currentState.value,
         securityToken: _securityToken.currentState.value,
         user: _user.currentState.value,
-        enableLogging: false,
+        enableLogging: true,
       );
       print(
           "Fyber SDK ${started ? "started... yay!" : "not running... nooo!"}");
@@ -191,21 +193,22 @@ class FyberAdsControlPanelState extends State<FyberAdsControlPanel> {
   }
 
   void _showRV() async {
-    final result = await Fyber4Flutter.showAd(AdTypes.rewarded);
+    final result =
+        await Fyber4Flutter.showRewardedVideo(notifyOnCompletion: false);
     setState(() {
       shownAds.add("Rewarded Video request result: $result");
     });
   }
 
   void _showOW() async {
-    final result = await Fyber4Flutter.showAd(AdTypes.offerwall);
+    final result = await Fyber4Flutter.showOfferwall(closeOnRedirect: true);
     setState(() {
       shownAds.add("Offerwall request result: $result");
     });
   }
 
   void _showInt() async {
-    final result = await Fyber4Flutter.showAd(AdTypes.interstitial);
+    final result = await Fyber4Flutter.showInterstitial();
     setState(() {
       shownAds.add("Interstitial request result: $result");
     });
