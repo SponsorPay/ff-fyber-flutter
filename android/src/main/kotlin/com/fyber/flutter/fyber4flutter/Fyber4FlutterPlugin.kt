@@ -8,6 +8,7 @@ import com.fyber.Fyber
 import com.fyber.ads.AdFormat
 import com.fyber.requesters.*
 import com.fyber.utils.FyberLogger
+import io.flutter.app.FlutterActivity
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -19,6 +20,14 @@ class Fyber4FlutterPlugin(registrar: Registrar, val channel: MethodChannel) : Me
 
     companion object {
         private const val TAG = "Fyber4Flutter"
+        private const val REWARDED_REQUEST_CODE = 0x888000
+        private const val OFFERWALL_REQUEST_CODE = 0x888001
+        private const val INTERSTITIAL_REQUEST_CODE = 0x888002
+        internal val AVAILABLE_REQUEST_CODES = setOf(
+                OFFERWALL_REQUEST_CODE,
+                REWARDED_REQUEST_CODE,
+                INTERSTITIAL_REQUEST_CODE
+        )
         @JvmStatic
         fun registerWith(registrar: Registrar): Unit {
             val channel = MethodChannel(registrar.messenger(), "fyber_4_flutter")
@@ -31,6 +40,15 @@ class Fyber4FlutterPlugin(registrar: Registrar, val channel: MethodChannel) : Me
 
     val activity: Activity = registrar.activity()
     val context: Context = registrar.context()
+
+    private var flutterActivity: FyberFlutterActivity? = null
+
+    init {
+        if (activity is FyberFlutterActivity) {
+            activity.onAdShownResult = this::onAdEngagementResult
+            flutterActivity = activity
+        }
+    }
 
     private var settings: Fyber.Settings? = null
 
@@ -45,7 +63,7 @@ class Fyber4FlutterPlugin(registrar: Registrar, val channel: MethodChannel) : Me
                 val loggingEnabled = arguments["loggingEnabled"]
 
                 var fyber = Fyber.with(appId, this.activity)
-                        .withSecurityToken(securityToken);
+                        .withSecurityToken(securityToken)
                 user?.let {
                     fyber = fyber.withUserId(it)
                 }
@@ -61,19 +79,25 @@ class Fyber4FlutterPlugin(registrar: Registrar, val channel: MethodChannel) : Me
                 val arguments = call.arguments as Map<String, String>
                 val adType = arguments["type"]
                 adType?.let {
-                    val requestCallback: RequestCallback = CustomRequestCallback(result, context)
                     when (it) {
                         "offerwall" -> {
-                            Log.d(TAG, "requesting for OfferWall")
+                            val requestCallback: RequestCallback =
+                                    CustomRequestCallback(result, context, activity
+                                    =flutterActivity, requestCode = OFFERWALL_REQUEST_CODE)
+
 
                             OfferWallRequester.create(requestCallback).request(context)
                         }
                         "interstitial" -> {
-                            Log.d(TAG, "requesting for Interstitial")
+                            val requestCallback: RequestCallback =
+                                    CustomRequestCallback(result, context, activity
+                                    =flutterActivity, requestCode = INTERSTITIAL_REQUEST_CODE)
                             InterstitialRequester.create(requestCallback).request(context)
                         }
                         "rewarded" -> {
-                            Log.d(TAG, "requesting for Rewarded Video")
+                            val requestCallback: RequestCallback =
+                                    CustomRequestCallback(result, context, activity
+                                    =flutterActivity, requestCode = REWARDED_REQUEST_CODE)
                             RewardedVideoRequester.create(requestCallback).request(context)
                         }
                         else -> {
@@ -108,20 +132,41 @@ class Fyber4FlutterPlugin(registrar: Registrar, val channel: MethodChannel) : Me
     }
 
     private fun sendEvent(event: Any): Boolean {
+        Log.d(TAG, "Trying send $event to ${if (eventSink == null) "'/dev/null'" else "eventSink"}")
         return eventSink?.let {
             it.success(event)
             true
         } ?: false
     }
 
-    class CustomRequestCallback(private val result: Result, private val context: Context) : RequestCallback {
+    private fun onAdEngagementResult(result: EngagementResults, requestCode: Int, message: String?) {
+        sendEvent(
+                mapOf(
+                        "result" to result.name,
+                        "code" to "$requestCode",
+                        "message" to message
+                )
+        )
+    }
+
+    class CustomRequestCallback(private val result: Result, private val context: Context,
+                                private val activity: FlutterActivity?, private val requestCode: Int) :
+            RequestCallback {
         override fun onAdAvailable(p0: Intent?) {
             Log.d(TAG, "onAdAvailable: ${p0?.component}")
             p0?.let {
-                context.startActivity(it.apply {
-                    it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                })
-                result.success("fill")
+                if (activity != null) {
+
+                    activity?.startActivityForResult(
+                            it, requestCode
+                    )
+                    result.success("fill:$requestCode")
+                } else {
+                    context.startActivity(it.apply {
+                        it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    })
+                    result.success("fill")
+                }
             }
         }
 

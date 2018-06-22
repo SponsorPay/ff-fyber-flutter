@@ -18,6 +18,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: const Color.fromARGB(255, 0, 208, 134),
       ),
@@ -25,7 +26,7 @@ class _MyAppState extends State<MyApp> {
         appBar: new AppBar(
           title: new Row(
             children: <Widget>[
-              new Text('Fyber SDK 4'),
+              new Text('Fyber SDK for'),
               new Padding(
                 padding: const EdgeInsets.only(left: 4.0),
                 child: new FlutterLogo(
@@ -111,7 +112,7 @@ class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
         appId: _appId.currentState.value,
         securityToken: _securityToken.currentState.value,
         user: _user.currentState.value,
-        enableLogging: true,
+        enableLogging: false,
       );
       print(
           "Fyber SDK ${started ? "started... yay!" : "not running... nooo!"}");
@@ -180,16 +181,12 @@ class FyberAdsControlPanelState extends State<FyberAdsControlPanel> {
             ),
           ],
         ),
-        ListView(
-          shrinkWrap: true,
-          reverse: true,
-          children: shownAds
-              .map((text) => ListTile(
-                    title: Text(text),
-                  ))
-              .toList(),
+        EngagementEventLogger(),
+      ]..addAll(
+          shownAds.reversed.map((text) => ListTile(
+                title: Text(text),
+              )),
         ),
-      ],
     );
   }
 
@@ -212,5 +209,28 @@ class FyberAdsControlPanelState extends State<FyberAdsControlPanel> {
     setState(() {
       shownAds.add("Interstitial request result: $result");
     });
+  }
+}
+
+class EngagementEventLogger extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<EngagementEvent>(
+      initialData: null,
+      stream: Fyber4Flutter.engagementResults,
+      builder: (context, snapshot) {
+        if (snapshot.data != null) {
+          return new SizedBox(
+            height: 48.0,
+            child: new Center(
+                child: new Text("Last engagement: ${snapshot.data}")),
+          );
+        } else {
+          return new SizedBox(
+            height: 48.0,
+          );
+        }
+      },
+    );
   }
 }
