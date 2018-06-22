@@ -47,5 +47,6 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-
+    // Fyber SDK
+    implementation 'com.fyber:fyber-sdk:8.21.0'
 }

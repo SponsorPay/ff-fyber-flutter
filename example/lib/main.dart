@@ -10,32 +10,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-
   @override
   initState() {
     super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await Fyber4Flutter.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
   }
 
   @override
@@ -70,10 +47,14 @@ class FlutterSdkTestPage extends StatefulWidget {
 }
 
 final FormFieldValidator<String> _nonNullValidator = (String value) =>
-    (value != null && value.length > 0) ? "" : "Field is empty";
+    (value == null || value.length == 0) ? "Field is empty" : null;
 
 class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  final GlobalKey<FormFieldState<String>> _appId = GlobalKey();
+  final GlobalKey<FormFieldState<String>> _user = GlobalKey();
+  final GlobalKey<FormFieldState<String>> _securityToken = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -87,20 +68,23 @@ class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
               child: Column(
                 children: <Widget>[
                   new TextFormField(
+                    key: _appId,
                     initialValue: "26357",
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: "App ID"),
                     validator: _nonNullValidator,
                   ),
                   new TextFormField(
+                    key: _securityToken,
                     initialValue: "token",
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.text,
                     decoration:
                         const InputDecoration(labelText: "Security token"),
                     validator: _nonNullValidator,
                   ),
                   new TextFormField(
-                    keyboardType: TextInputType.number,
+                    key: _user,
+                    keyboardType: TextInputType.text,
                     decoration: const InputDecoration(labelText: "User"),
                   ),
                   new Padding(
@@ -121,9 +105,16 @@ class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
     );
   }
 
-  void _onStartSDK() {
+  void _onStartSDK() async {
     if (_formKey.currentState.validate()) {
-      // TODO start SDK
+      final started = await Fyber4Flutter.startFyber(
+        appId: _appId.currentState.value,
+        securityToken: _securityToken.currentState.value,
+        user: _user.currentState.value,
+        enableLogging: true,
+      );
+      print(
+          "Fyber SDK ${started ? "started... yay!" : "not running... nooo!"}");
     }
   }
 }
@@ -131,36 +122,95 @@ class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
 class FyberSdkStartedIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // TODO check for SDK to become started
-    return Container();
+    return Container(
+      child: FutureBuilder<bool>(
+        future: Fyber4Flutter.sdkReady,
+        initialData: false,
+        builder: (context, snapshot) {
+          if (snapshot.data) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text("Sdk seems ready"),
+            );
+          } else {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: <Widget>[
+                  Text("SDK is not ready yet"),
+                  CircularProgressIndicator()
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 }
 
-class FyberAdsControlPanel extends StatelessWidget {
+class FyberAdsControlPanel extends StatefulWidget {
+  @override
+  FyberAdsControlPanelState createState() {
+    return new FyberAdsControlPanelState();
+  }
+}
+
+class FyberAdsControlPanelState extends State<FyberAdsControlPanel> {
+  List<String> shownAds = [];
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return Column(
       children: <Widget>[
-        new RaisedButton(
-          onPressed: _showRV,
-          child: new Text("Rewarded"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            RaisedButton(
+              onPressed: _showRV,
+              child: Text("Rewarded"),
+            ),
+            RaisedButton(
+              onPressed: _showOW,
+              child: Text("Offerwall"),
+            ),
+            RaisedButton(
+              onPressed: _showInt,
+              child: Text("Interstitial"),
+            ),
+          ],
         ),
-        new RaisedButton(
-          onPressed: _showOW,
-          child: new Text("Offerwall"),
-        ),
-        new RaisedButton(
-          onPressed: _showInt,
-          child: new Text("Interstitial"),
+        ListView(
+          shrinkWrap: true,
+          reverse: true,
+          children: shownAds
+              .map((text) => ListTile(
+                    title: Text(text),
+                  ))
+              .toList(),
         ),
       ],
     );
   }
 
-  void _showRV() {}
+  void _showRV() async {
+    final result = await Fyber4Flutter.showAd(AdTypes.rewarded);
+    setState(() {
+      shownAds.add("Rewarded Video request result: $result");
+    });
+  }
 
-  void _showOW() {}
+  void _showOW() async {
+    final result = await Fyber4Flutter.showAd(AdTypes.offerwall);
+    setState(() {
+      shownAds.add("Offerwall request result: $result");
+    });
+  }
 
-  void _showInt() {}
+  void _showInt() async {
+    final result = await Fyber4Flutter.showAd(AdTypes.interstitial);
+    setState(() {
+      shownAds.add("Interstitial request result: $result");
+    });
+  }
 }
