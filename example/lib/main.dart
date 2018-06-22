@@ -58,10 +58,109 @@ class _MyAppState extends State<MyApp> {
             ],
           ),
         ),
-        body: new Center(
-          child: new Text('Running on: $_platformVersion\n'),
+        body: new FlutterSdkTestPage(),
+      ),
+    );
+  }
+}
+
+class FlutterSdkTestPage extends StatefulWidget {
+  @override
+  _FlutterSdkTestPageState createState() => _FlutterSdkTestPageState();
+}
+
+final FormFieldValidator<String> _nonNullValidator = (String value) =>
+    (value != null && value.length > 0) ? "" : "Field is empty";
+
+class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return new SingleChildScrollView(
+      child: new Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: new Column(
+          children: <Widget>[
+            new Form(
+              key: _formKey,
+              child: Column(
+                children: <Widget>[
+                  new TextFormField(
+                    initialValue: "26357",
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: "App ID"),
+                    validator: _nonNullValidator,
+                  ),
+                  new TextFormField(
+                    initialValue: "token",
+                    keyboardType: TextInputType.number,
+                    decoration:
+                        const InputDecoration(labelText: "Security token"),
+                    validator: _nonNullValidator,
+                  ),
+                  new TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: "User"),
+                  ),
+                  new Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: new RaisedButton(
+                      onPressed: _onStartSDK,
+                      child: new Text("Start SDK"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            new FyberSdkStartedIndicator(),
+            new FyberAdsControlPanel(),
+          ],
         ),
       ),
     );
   }
+
+  void _onStartSDK() {
+    if (_formKey.currentState.validate()) {
+      // TODO start SDK
+    }
+  }
+}
+
+class FyberSdkStartedIndicator extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO check for SDK to become started
+    return Container();
+  }
+}
+
+class FyberAdsControlPanel extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        new RaisedButton(
+          onPressed: _showRV,
+          child: new Text("Rewarded"),
+        ),
+        new RaisedButton(
+          onPressed: _showOW,
+          child: new Text("Offerwall"),
+        ),
+        new RaisedButton(
+          onPressed: _showInt,
+          child: new Text("Interstitial"),
+        ),
+      ],
+    );
+  }
+
+  void _showRV() {}
+
+  void _showOW() {}
+
+  void _showInt() {}
 }
