@@ -60,5 +60,10 @@ void main() {
     expect(offerwallResponse.offers[0].title, "REST API Demo Offer");
     expect(offerwallResponse.offers[0].thumbnail,
         "http://cdn2.sponsorpay.com/assets/45288/Fyber_Logo_square_175.png");
+    expect(offerwallResponse.offers[0].types.length, 2);
+    expect(offerwallResponse.offers[0].types[0].id, 101);
+    expect(offerwallResponse.offers[0].types[1].id, 112);
+    expect(offerwallResponse.offers[0].types[0].readable, "Download");
+    expect(offerwallResponse.offers[0].types[1].readable, "Free");
   });
 }

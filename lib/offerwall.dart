@@ -50,6 +50,7 @@ class OfferData {
   final int payout;
   final int timeToPayout;
   final String thumbnail;
+  final List<OfferType> types;
 
   OfferData.fromJson(Map<String, dynamic> json)
       : title = json["title"],
@@ -60,7 +61,23 @@ class OfferData {
         payout = json["payout"],
         timeToPayout =
             (json["time_to_payout"] as Map<String, dynamic>)["amount"],
-        thumbnail = (json["thumbnail"] as Map<String, dynamic>)["hires"];
+        thumbnail = (json["thumbnail"] as Map<String, dynamic>)["hires"],
+        types = (json["offer_types"] as List<dynamic>)
+            .map((ot) => ot as Map<String, dynamic>)
+            .map((typeJson) => OfferType.fromJson(typeJson))
+            .toList(growable: false);
+}
+
+class OfferType {
+  final int id;
+  final String readable;
+
+  OfferType.fromJson(Map<String, dynamic> json)
+      : id = json["offer_type_id"],
+        readable = json["readable"];
+
+  @override
+  String toString() => "OfferType[$readable]";
 }
 
 class OfferwallRestApiClient {
