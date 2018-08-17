@@ -8,9 +8,10 @@ class OfferwallPage extends StatelessWidget {
       apiKey: "1c915e3b5d42d05136185030892fbb846c278927",
       appId: "2070",
       userId: "superman",
+      //TODO retrieve following information using some kind of plugin
       googleAdId: "a0b0c0d0-a0b0-c0d0-e0f0-a0b0c0d0e0f0",
       googleAdIdLimitedTrackingEnabled: false,
-      osVersion: "x86_64",
+      osVersion: "iPhone6,2",
     );
   }
 }
