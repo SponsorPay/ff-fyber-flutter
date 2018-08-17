@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/material.dart';
 import 'package:fyber_4_flutter/offerwall_utils.dart';
@@ -148,39 +148,48 @@ class _OfferwallLoader extends StatelessWidget {
     final payout = offer.payout;
     final iconBorderSize = 80.0;
     final types = offer.types;
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          new OfferIcon(
-            iconBorderSize: iconBorderSize,
-            thumbnail: thumbnail,
-            payout: payout,
-          ),
-          SizedBox(
-            width: 8.0,
-          ),
-          Expanded(
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    offer.title,
-                    style: theme.textTheme.title
-                        .copyWith(fontWeight: FontWeight.w700),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    offer.requiredActions,
-                    style: theme.textTheme.body2,
-                  ),
-                  SizedBox(height: 2.0),
-                  new TypeTags(types: types)
-                ]),
-          )
-        ],
+    return InkWell(
+      onTap: () {
+        canLaunch(offer.link).then((canLaunchResult) {
+          if (canLaunchResult) {
+            launch(offer.link);
+          }
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            new OfferIcon(
+              iconBorderSize: iconBorderSize,
+              thumbnail: thumbnail,
+              payout: payout,
+            ),
+            SizedBox(
+              width: 8.0,
+            ),
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      offer.title,
+                      style: theme.textTheme.title
+                          .copyWith(fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      offer.requiredActions,
+                      style: theme.textTheme.body2,
+                    ),
+                    SizedBox(height: 2.0),
+                    new TypeTags(types: types)
+                  ]),
+            )
+          ],
+        ),
       ),
     );
   }

@@ -1,12 +1,14 @@
 name: fyber_4_flutter
 description: A Flutter plugin for interacting with Fyber SDK.
-version: 0.0.1
+version: 0.0.2
 author:
 homepage:
 
 dependencies:
   flutter:
     sdk: flutter
+
+  url_launcher: ^3.0.3
 
 dev_dependencies:
   flutter_test:
