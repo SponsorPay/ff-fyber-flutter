@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 
 String hashcode({Map<String, String> params, String apiKey}) {
   // sort param names
@@ -25,6 +27,8 @@ class OfferwallResponse {
   final int pages;
   final int count;
   final List<OfferData> offers;
+
+  OfferwallResponse.error(this.code, this.message);
 
   OfferwallResponse.fromJson(Map<String, dynamic> json)
       : code = json["code"],
@@ -57,4 +61,51 @@ class OfferData {
         timeToPayout =
             (json["time_to_payout"] as Map<String, dynamic>)["amount"],
         thumbnail = (json["thumbnail"] as Map<String, dynamic>)["hires"];
+}
+
+class OfferwallRestApiClient {
+  final http.Client httpClient = http.Client();
+
+  final String apiKey;
+  final String appId;
+  final String userId;
+  final String locale;
+  final String osVersion;
+  final String googleAdId;
+  final bool googleAdIdLimitedTrackingEnabled;
+
+  OfferwallRestApiClient(this.apiKey, this.appId, this.userId, this.locale,
+      this.osVersion, this.googleAdId, this.googleAdIdLimitedTrackingEnabled);
+
+  Future<OfferwallResponse> getOffers({int page = 0}) {
+    final int timestamp =
+        (DateTime.now().millisecondsSinceEpoch / 1000).floor();
+    final params = {
+      "appid": appId,
+      "uid": userId,
+      "locale": locale,
+      "os_version": osVersion,
+      "timestamp": "$timestamp",
+      "google_ad_id": googleAdId,
+      "google_ad_id_limited_tracking_enabled":
+          "$googleAdIdLimitedTrackingEnabled",
+    };
+    if (page != 0) {
+      params["page"] = "$page";
+    }
+    final hashcodeString = hashcode(params: params, apiKey: apiKey);
+    params["hashkey"] = hashcodeString;
+
+    return httpClient
+        .get(Uri.https("api.fyber.com", "/feed/v1/offers.json", params))
+        .then((response) {
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return OfferwallResponse.fromJson(jsonResponse);
+      } else {
+        return OfferwallResponse.error(
+            "${response.statusCode}", response.reasonPhrase);
+      }
+    }, onError: (error) => OfferwallResponse.error("-1", error.toString()));
+  }
 }
