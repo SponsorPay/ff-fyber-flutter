@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fyber_4_flutter/fyber_4_flutter.dart';
+import 'package:fyber_4_flutter_example/offerwall_page.dart';
 
 void main() => runApp(new MyApp());
 
@@ -24,22 +23,43 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primaryColor: const Color.fromARGB(255, 0, 208, 134),
       ),
-      home: new Scaffold(
-        appBar: new AppBar(
-          title: new Row(
-            children: <Widget>[
-              new Text('Fyber SDK for'),
-              new Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: new FlutterLogo(
-                  colors: Colors.purple,
-                ),
+      routes: {
+        Navigator.defaultRouteName: (context) => PageWrapper(
+              child: FlutterSdkTestPage(),
+            ),
+        "/offerwallWidget": (context) => PageWrapper(
+              child: OfferwallPage(),
+            ),
+      },
+    );
+  }
+}
+
+class PageWrapper extends StatelessWidget {
+  final Widget child;
+
+  const PageWrapper({
+    Key key,
+    this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Row(
+          children: <Widget>[
+            new Text('Fyber SDK for'),
+            new Padding(
+              padding: const EdgeInsets.only(left: 4.0),
+              child: new FlutterLogo(
+                colors: Colors.purple,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        body: new FlutterSdkTestPage(),
       ),
+      body: child,
     );
   }
 }
@@ -92,9 +112,21 @@ class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
                   ),
                   new Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: new RaisedButton(
-                      onPressed: _onStartSDK,
-                      child: new Text("Start SDK"),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        new RaisedButton(
+                          onPressed: _onStartSDK,
+                          child: new Text("Start SDK"),
+                        ),
+                        SizedBox(
+                          width: 32.0,
+                        ),
+                        new RaisedButton(
+                          onPressed: _onShowOfferwallWidget,
+                          child: new Text("Offerwall widget"),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -119,6 +151,10 @@ class _FlutterSdkTestPageState extends State<FlutterSdkTestPage> {
       print(
           "Fyber SDK ${started ? "started... yay!" : "not running... nooo!"}");
     }
+  }
+
+  void _onShowOfferwallWidget() {
+    Navigator.of(context).pushNamed("/offerwallWidget");
   }
 }
 
