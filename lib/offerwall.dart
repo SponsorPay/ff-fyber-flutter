@@ -1,7 +1,6 @@
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:flutter/material.dart';
 import 'package:fyber_4_flutter/offerwall_utils.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 export 'offerwall_utils.dart';
 
@@ -118,27 +117,77 @@ class _OfferwallLoader extends StatelessWidget {
   }
 
   Widget _buildOfferwallOffers(BuildContext context, OfferwallResponse data) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        // title
-        Container(
-          height: 80.0,
-          child: Center(
-            child: Text(
-              "Win ${data.currency}",
-              style: Theme.of(context).textTheme.title,
+    var allTypesSet = data.offers.map((data) => data.types).fold(
+        List<OfferType>(),
+        (existingTypes, newTypes) => newTypes.toList()..addAll(existingTypes));
+    var allTypes = <OfferType>[];
+    for (int i = 0; i < allTypesSet.length; i++) {
+      OfferType type = allTypesSet[i];
+      if (allTypes.indexWhere((existingType) => existingType.id == type.id) ==
+          -1) {
+        allTypes.add(type);
+      }
+    }
+    allTypes.sort((a, b) => a.readable.compareTo(b.readable));
+
+    final offersFiltered = <String, List<OfferData>>{
+      "ALL": data.offers,
+    }..addEntries(allTypes.map((type) {
+        final filtered = data.offers
+            .where((offer) =>
+                offer.types.indexWhere((ot) => ot.id == type.id) != -1)
+            .toList();
+        return MapEntry<String, List<OfferData>>(type.readable, filtered);
+      }));
+
+    return DefaultTabController(
+      length: offersFiltered.keys.length,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          // title
+          Container(
+            height: 40.0,
+            child: Center(
+              child: Text(
+                "Win ${data.currency}",
+                style: Theme.of(context).textTheme.title,
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-              itemCount: data.offers.length,
-              itemBuilder: (BuildContext context, int index) =>
-                  _buildOfferItemWidget(context, data.offers[index])),
-        ),
-      ],
+          // tabs
+          TabBar(
+            isScrollable: true,
+            labelColor: Theme.of(context).accentColor,
+            unselectedLabelColor: Theme.of(context).textTheme.body1.color,
+            indicatorWeight: 4.0,
+            tabs: offersFiltered.keys
+                .map((title) => SizedBox(
+                      height: 36.0,
+                      child: Center(
+                        child: Text(
+                          title.toUpperCase(),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+          // pages
+          Expanded(
+            child: TabBarView(
+              children: offersFiltered.values
+                  .map(
+                    (offerData) => ListView.builder(
+                        itemCount: offerData.length,
+                        itemBuilder: (BuildContext context, int index) =>
+                            _buildOfferItemWidget(context, offerData[index])),
+                  )
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
