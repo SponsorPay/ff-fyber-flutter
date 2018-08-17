@@ -65,5 +65,7 @@ void main() {
     expect(offerwallResponse.offers[0].types[1].id, 112);
     expect(offerwallResponse.offers[0].types[0].readable, "Download");
     expect(offerwallResponse.offers[0].types[1].readable, "Free");
+
+    expect(offerwallResponse.currency, "Coins");
   });
 }

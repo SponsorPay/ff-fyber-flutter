@@ -26,6 +26,7 @@ class OfferwallResponse {
   final String message;
   final int pages;
   final int count;
+  final String currency;
   final List<OfferData> offers;
 
   OfferwallResponse.error(this.code, this.message);
@@ -35,6 +36,8 @@ class OfferwallResponse {
         message = json["message"],
         pages = json["pages"],
         count = json["count"],
+        currency =
+            (json["information"] as Map<String, dynamic>)["virtual_currency"],
         offers = (json["offers"] as List<dynamic>)
             .map((element) => element as Map<String, dynamic>)
             .map((offerJson) => OfferData.fromJson(offerJson))
